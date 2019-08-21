@@ -183,6 +183,9 @@ RCT_EXPORT_METHOD(convert:(NSDictionary *)options
 
 - (void)webView:(WKWebView *)webView didFinishNavigation:(WKNavigation *)navigation
 {
+    if (webView.isLoading)
+        return;
+
     UIPrintPageRenderer *render = [[UIPrintPageRenderer alloc] init];
     [render addPrintFormatter:webView.viewPrintFormatter startingAtPageAtIndex:0];
 
