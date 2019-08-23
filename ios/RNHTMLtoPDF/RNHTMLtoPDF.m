@@ -170,12 +170,25 @@ RCT_EXPORT_METHOD(convert:(NSDictionary *)options
         _paddingLeft = [RCTConvert float:options[@"padding"]];
         _paddingRight = [RCTConvert float:options[@"padding"]];
     }
-
-    NSString *path = [[NSBundle mainBundle] bundlePath];
-    NSURL *baseURL = [NSURL fileURLWithPath:path];
-
-    [_webView loadHTMLString:_html baseURL:baseURL];
-
+    
+    NSURL *baseURL = [RCTConvert NSURL:options[@"baseURL"]];
+    NSString *libraryDir = [NSSearchPathForDirectoriesInDomains(NSLibraryDirectory, NSUserDomainMask, YES) firstObject];
+    NSURL *attachmentsDir = [NSURL fileURLWithPath:[libraryDir stringByAppendingPathComponent:@"Attachments"]];
+    if (!baseURL) {
+        baseURL = attachmentsDir;
+    }
+    NSURL *htmlTmpFileURL = [NSURL fileURLWithPath:[attachmentsDir.path stringByAppendingPathComponent:@"pdf___template.html"]];
+    NSError *error = nil;
+    
+    [_html writeToFile:htmlTmpFileURL.path atomically:NO encoding: NSUTF8StringEncoding error:&error];
+    
+    if ( error )
+    {
+        _rejectBlock(RCTErrorUnspecified, nil, RCTErrorWithMessage(error.description));
+        return;
+    }
+    [_webView loadFileURL:htmlTmpFileURL allowingReadAccessToURL:baseURL];
+    
     _resolveBlock = resolve;
     _rejectBlock = reject;
 
